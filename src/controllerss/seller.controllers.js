@@ -20,11 +20,11 @@ const generateAccessToken = async (userId) => {
 
 export const registerSeller = async (req, res) => {
   try {
-    const { name, phone, email, password, locationProof, aadharNumber } =
+    const { name, phone, password, locationProof, aadharNumber } =
       req.body;
     const planId = req.params.id;
 
-    if (!name || !phone || !email || !locationProof || !planId || !password) {
+    if (!name || !phone || !locationProof || !planId || !password) {
       return res.status(400).json({ message: "All fields are required" });
     }
     if(!planId) {
@@ -35,7 +35,7 @@ export const registerSeller = async (req, res) => {
       return res.status(400).json({ message: "Aadhar proof is required" });
     }
 
-    const existingSeller = await Seller.findOne({ phone, email });
+    const existingSeller = await Seller.findOne({ phone });
     if (existingSeller) {
       return res.status(400).json({ message: "Seller already exists" });
     }
@@ -61,7 +61,6 @@ export const registerSeller = async (req, res) => {
     const seller = new Seller({
       name,
       phone,
-      email,
       password: hashPassword,
       plan:planId,
       aadhaarProof: aadharImgResult.secure_url,

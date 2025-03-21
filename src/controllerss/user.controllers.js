@@ -19,12 +19,12 @@ const generateAccessToken = async (userId) => {
 
 export const registerUser = async (req, res) => {
   try {
-    const { name, email, phone, password } = req.body;
-    if (!name || !email || !phone || !password) {
+    const { name, phone, password } = req.body;
+    if (!name || !phone || !password) {
       return res.status(400).json({ message: "All fields are required" });
     }
 
-    const existingUser = await User.findOne({ email, phone });
+    const existingUser = await User.findOne({  phone });
     if (existingUser) {
       return res.status(400).json({ message: "User already exists" });
     }
@@ -48,11 +48,11 @@ export const registerUser = async (req, res) => {
 
 export const loginUser = async (req, res) => {
   try {
-    const { email, password } = req.body;
-    if (!email || !password) {
+    const {phone, password } = req.body;
+    if (!phone || !password) {
       return res.status(400).json({ message: "All fields are required" });
     }
-    const user = await User.findOne({ email });
+    const user = await User.findOne({ phone });
     if (!user) {
       return res.status(401).json({ message: "User Can't Find" });
     }

@@ -13,11 +13,6 @@ const sellerSchema = new mongoose.Schema({
     required: true,
     unique: true,
   },
-  email: {
-    type: String,
-    required: true,
-    unique: true,
-  },
   password: {
     type: String,
     required: true,
@@ -57,7 +52,7 @@ sellerSchema.methods.generateAccessToken = function () {
   return jwt.sign(
     {
       _id: this.id,
-      email: this.email,
+      phone: this.phone,
       fullName: this.fullName,
     },
     process.env.ACCESS_TOKEN_SECRET,
