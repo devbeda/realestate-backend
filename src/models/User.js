@@ -1,23 +1,23 @@
 // const mongoose = require("mongoose");
-import mongoose from "mongoose"
-import bcrypt from "bcryptjs"
-import jwt from "jsonwebtoken"
+import mongoose from "mongoose";
+import bcrypt from "bcryptjs";
+import jwt from "jsonwebtoken";
 
 const userSchema = new mongoose.Schema(
   {
-    name: { 
-      type: String, 
-      required: true 
+    name: {
+      type: String,
+      required: true,
     },
-    phone: { 
-      type: String, 
-      required: true, 
-      unique: true 
+    phone: {
+      type: String,
+      required: true,
+      unique: true,
     },
-    password: { 
-      type: String, 
-      required: true 
-    }
+    password: {
+      type: String,
+      required: true,
+    },
   },
   { timestamps: true }
 );
@@ -39,8 +39,5 @@ userSchema.methods.generateAccessToken = function () {
     }
   );
 };
-
-
-
 
 export const User = mongoose.model("User", userSchema);
