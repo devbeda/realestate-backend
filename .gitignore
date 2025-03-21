@@ -1,0 +1,24 @@
+# Ignore Node.js dependencies
+node_modules/
+
+# Ignore environment variables
+.env
+.env.local
+
+# Ignore logs
+*.log
+logs/
+
+# Ignore build/output directories
+dist/
+build/
+out/
+
+# Ignore package manager files
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
+
+# Ignore IDE-specific files
+.vscode/
+.idea/
