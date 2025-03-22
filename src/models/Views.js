@@ -1,12 +1,13 @@
 import mongoose from "mongoose";
 
 const viewsSchema = mongoose.Schema({
-  propertyId: [
+  propertyId: 
     {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Property",
+      required: true,
     },
-  ],
+  
   viewersId: [
     {
       type: mongoose.Schema.Types.ObjectId,
@@ -15,4 +16,4 @@ const viewsSchema = mongoose.Schema({
   ],
 });
 
-const Views = mongoose.model("Views", viewsSchema);
+export const Views = mongoose.model("Views", viewsSchema);

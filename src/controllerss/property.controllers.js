@@ -10,6 +10,8 @@ export const addProperty = async (req, res) => {
     const { title, description, location, area, price } = req.body;
     const sellerId = req.user._id;
 
+
+
     if (!title || !location || !price || !area) {
       return res
         .status(400)
@@ -19,9 +21,22 @@ export const addProperty = async (req, res) => {
       return res.status(401).json({ message: "User not authorized" });
     }
 
-    const sellerValidate = await Seller.findById(sellerId)
-    if(sellerValidate.planExpiryDate >= Date.now()) {
+    const seller = await Seller.findById(sellerId).populate("plan")
+    if(!seller){
+      return res.status(404).json({message: "Seller not found."})
+    }
+
+    if(seller.planExpiryDate <= Date.now()) {
       return res.status(403).json({ message: "Your plan expired. Please renew your plan." });
+    }
+
+    const propertyCount = await Property.countDocuments({
+      seller: sellerId,
+      createdAt: {$gte: seller.planStartingDate, $lte: seller.planExpiryDate},
+    })
+
+    if(propertyCount >= seller.plan.propertyLimit){
+      return res.status(403).json({message: "You have reached the property limit of your plan."})
     }
 
     if (!req.files || !req.files.images || !req.files.videos) {

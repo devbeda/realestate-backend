@@ -4,9 +4,9 @@ import { approveProperty, getAllProperty, getAllSeller, getPropertyById, sellerA
 const router = Router()
 
 router.post('/approveseller/:id', sellerApprove)
-router.post('/approveproperty', approveProperty)
+router.post('/approveproperty/:id', approveProperty)
 router.get('/gelallsellers', getAllSeller)
-router.route('/getallproperty/:id', getAllProperty)
-router.route('/getproperty/:id', getPropertyById)
+router.get('/getallproperty/:id', getAllProperty)
+router.get('/getproperty/:id', getPropertyById)
 
 export default router

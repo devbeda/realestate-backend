@@ -6,6 +6,7 @@ import {
   logInSeller,
   logOutSeller,
   registerSeller,
+  renewalPlan,
   updateSeller,
 } from "../controllerss/seller.controllers.js";
 import authMiddleware from "../middleware/authMiddleware.js";
@@ -24,8 +25,9 @@ router.post("/logoutseller", authMiddleware, logOutSeller);
 router.post("/updateseller", authMiddleware, updateSeller)
 
 // properties routes
-router.post("/addproperties",authMiddleware ,upload.fields([{name: "images"},{name: "videos"}]) ,addProperty)
+router.post("/addproperty",authMiddleware ,upload.fields([{name: "images"},{name: "videos"}]) ,addProperty)
 router.get("/allproperties", authMiddleware, getAllProperties);
 router.get("/getproperty/:id", getPropertyById)
+router.put("renewalplan/:id", authMiddleware, renewalPlan)
 
 export default router
