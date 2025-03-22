@@ -228,7 +228,7 @@ export const renewalPlan = async (req, res) => {
       return res.status(404).json({ message: "Invalid plan selected." });
     }
 
-    const newPlanStartingIn = newDate(Date.now());
+    const newPlanStartingIn = new Date(Date.now());
 
     const newPlanExpiryIn = new Date(
       Date.now() + plan.duration * 24 * 60 * 60 * 1000

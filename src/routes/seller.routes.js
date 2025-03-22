@@ -28,6 +28,6 @@ router.post("/updateseller", authMiddleware, updateSeller)
 router.post("/addproperty",authMiddleware ,upload.fields([{name: "images"},{name: "videos"}]) ,addProperty)
 router.get("/allproperties", authMiddleware, getAllProperties);
 router.get("/getproperty/:id", getPropertyById)
-router.put("renewalplan/:id", authMiddleware, renewalPlan)
+router.put("/renewalplan/:id", authMiddleware, renewalPlan)
 
 export default router

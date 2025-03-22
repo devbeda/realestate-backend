@@ -42,13 +42,30 @@ export const sellerApprove = async (req, res) => {
 
 export const getAllSeller = async (req, res) => {
   try {
-    const sellers = await Seller.find();
-    res.status(200).json(sellers);
+    const sellers = await Seller.find({});
+    res.status(200).json({message: "all seller are fetched", sellers});
   } catch (error) {
     console.error("Error fetching sellers:", error);
     res.status(500).json({ message: "Error fetching sellers." });
   }
 };
+
+export const getSellerProfile = async(req,res) => {
+  try {
+    const sellerId = req.params.id;
+    if (!sellerId) {
+      return res.status(400).json({ message: "Seller ID is required." });
+    }
+    const seller = await Seller.findById(sellerId);
+    if (!seller) {
+      return res.status(404).json({ message: "Seller not found" });
+    }
+    res.status(200).json({ message: "seller profile fetched successfully", seller });
+    } catch (error) {
+    console.error("Error fetching seller profile: ", error);
+    res.status(500).json({ message: "Interval Server Error" });
+    }
+}
 
 export const approveProperty = async (req, res) => {
   try {

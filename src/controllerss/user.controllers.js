@@ -31,7 +31,7 @@ export const registerUser = async (req, res) => {
     }
 
     const hashPassword = await bcrypt.hash(password, 10);
-    const newUser =  new User({ name, email, phone, password: hashPassword });
+    const newUser =  new User({ name, phone, password: hashPassword });
     await newUser.save()
 
     const user = await User.findById(newUser.id).select("-password")
