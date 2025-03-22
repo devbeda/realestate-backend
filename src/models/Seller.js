@@ -42,6 +42,10 @@ const sellerSchema = new mongoose.Schema({
     ref: "Plan",
     required: true,
   }, // Plan ID
+  planStartingDate:{
+    type: Date,
+    required: true,
+  },
   planExpiryDate: {
     type: Date,
     required: true,

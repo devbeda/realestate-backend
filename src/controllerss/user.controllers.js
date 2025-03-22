@@ -2,9 +2,10 @@ import { Property } from "../models/Property.js";
 import { Review } from "../models/Review.js";
 import {User} from "../models/User.js";
 import bcrypt from "bcryptjs";
+
 import twilio from "twilio";
 import dotenv from "dotenv";
-
+import { Views } from "../models/Views.js";
 
 dotenv.config();
 
@@ -124,19 +125,23 @@ export const getPropertyByIdForUser = async (req, res) => {
       return res.status(404).json({ message: "Property not found." });
     }
 
-    // Check if the property already exists in the Views collection
-    let existingView = await Views.findOne({ propertyId });
-
-    if (!existingView) {
-      // If the property is not in the Views collection, create a new record
-      existingView = await Views.create({ propertyId, viewersId: [userId] });
-    } else {
-      // If the property exists, check if the user has already viewed it
-      if (!existingView.viewersId.includes(userId)) {
-        existingView.viewersId.push(userId); // Add user if they haven't viewed it before
-        await existingView.save();
+    const viewRecord = await Views.findOne({propertyId})
+    if(viewRecord) {
+      if(viewRecord.viewersId.includes(userId)) {
+        return res.status(200).json({property})
       }
+
+      viewRecord.viewersId.push(userId)
+      await viewRecord.save()
+    }else {
+      const newViewrecord = new Views({
+        propertyId,
+        viewersId: [userId],
+      })
+      await newViewrecord.save()
     }
+    property.views += 1;
+    await property.save()
 
     res.status(200).json({ message: "Property fetched successfully", property });
   } catch (error) {
@@ -190,7 +195,29 @@ export const createReview = async (req, res) => {
   }
 };
 
+export const deleteReview = async (req, res) => {
+  try {
+    const userId = req.user._id;
+    const reviewId = req.params.id;
+    const review = await Review.findById(reviewId);
+    if (!review) {
+      return res.status(404).json({ message: "Review not found." });
+    }
 
+    if (review.userId.toString()!== userId) {
+      return res.status(403).json({ message: "You are not authorized to delete this review." });
+    }
+    await review.remove();
+    res.status(200).json({ message: "Review deleted successfully." });
+    } catch (error) {
+    console.error("Error deleting review:", error);
+    res.status(500).json({ message: "Internal server error" });
+    }
+}
+
+export const getApprovedProperties = async(req,res) => {
+
+}
 
 ///----------------------------->
 

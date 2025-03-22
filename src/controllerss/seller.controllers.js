@@ -3,7 +3,7 @@ import { Seller } from "../models/Seller.js";
 import { Plan } from "../models/Plan.js";
 import { Property } from "../models/Property.js";
 import bcrypt from "bcryptjs";
-import fs from "fs"
+import fs from "fs";
 
 const generateAccessToken = async (userId) => {
   try {
@@ -20,14 +20,13 @@ const generateAccessToken = async (userId) => {
 
 export const registerSeller = async (req, res) => {
   try {
-    const { name, phone, password, locationProof, aadharNumber } =
-      req.body;
+    const { name, phone, password, locationProof, aadharNumber } = req.body;
     const planId = req.params.id;
 
     if (!name || !phone || !locationProof || !planId || !password) {
       return res.status(400).json({ message: "All fields are required" });
     }
-    if(!planId) {
+    if (!planId) {
       return res.status(400).json({ message: "Select One Plan" });
     }
 
@@ -42,40 +41,50 @@ export const registerSeller = async (req, res) => {
 
     const hashPassword = await bcrypt.hash(password, 10);
 
-    const aadharImgResult = await cloudinary.uploader.upload(
-      req.file.path
-    );
-    if (!aadharImgResult.secure_url) {
-      fs.unlinkSync(req.file.path);
-      return res.status(500).json({ message: "Failed to upload aadhar proof" });
+    let aadharImgResult;
+    try {
+      aadharImgResult = await cloudinary.uploader.upload(req.file.path);
+    } catch (uploadError) {
+      fs.unlinkSync(req.file.path); // Delete the file if upload fails
+      return res
+        .status(500)
+        .json({ message: "Failed to upload Aadhaar proof" });
     }
     fs.unlinkSync(req.file.path);
 
     const plan = await Plan.findById(planId);
-    if(!plan) {
+    if (!plan) {
       return res.status(400).json({ message: "Invalid plan selected" });
     }
 
-    const planExpiryIn = new Date(Date.now() + plan.duration * 24 * 60 * 60 * 1000)
+    const planStartingDate = new Date(Date.now());
+
+    const planExpiryIn = new Date(
+      Date.now() + plan.duration * 24 * 60 * 60 * 1000
+    );
 
     const seller = new Seller({
       name,
       phone,
       password: hashPassword,
-      plan:planId,
+      plan: planId,
       aadhaarProof: aadharImgResult.secure_url,
       aadharNumber,
       locationProof,
+      planStartingDate,
       planExpiryDate: planExpiryIn,
     });
 
-
     await seller.save();
-    const newSeller= await Seller.findById(seller._id).select("-password")
+    const newSeller = await Seller.findById(seller._id).select("-password");
 
-    res.status(201).json({ message: "Seller registered successfully", newSeller });
+    res
+      .status(201)
+      .json({ message: "Seller registered successfully", newSeller });
   } catch (error) {
-    fs.unlinkSync(req.file)
+    if (req.file) {
+      fs.unlinkSync(req.file.path); // Delete the file if an error occurs
+    }
     res.status(500).json({ message: "Got Error in Register Seller " });
     console.error(error);
   }
@@ -116,7 +125,7 @@ export const logInSeller = async (req, res) => {
       });
     }
 
-    const loginSeller = await Seller.findById(seller._id).select("-password")
+    const loginSeller = await Seller.findById(seller._id).select("-password");
 
     const accessToken = await generateAccessToken(seller._id);
     if (!accessToken) {
@@ -124,8 +133,6 @@ export const logInSeller = async (req, res) => {
         .status(500)
         .json({ message: "Failed to generate access token" });
     }
-
-
 
     res.status(200).cookie("accessToken", accessToken).json({
       message: "Logged in successfully",
@@ -159,21 +166,22 @@ export const logOutSeller = async (req, res) => {
   }
 };
 
-export const updateSeller = async (req,res) => {
+export const updateSeller = async (req, res) => {
   try {
-    const sellerId = req.user._id
-    const seller = await Seller.findByIdAndUpdate(sellerId, req.body, {new: true, runValidators: true}).select("-password")
-    if(!seller) {
+    const sellerId = req.user._id;
+    const seller = await Seller.findByIdAndUpdate(sellerId, req.body, {
+      new: true,
+      runValidators: true,
+    }).select("-password");
+    if (!seller) {
       return res.status(404).json({ message: "Seller not found." });
     }
-    res.status(200).json({ message: "Seller updated successfully", seller })
+    res.status(200).json({ message: "Seller updated successfully", seller });
   } catch (error) {
     res.status(500).json({ message: "Got Error in Update Seller " });
     console.error(error);
   }
-}
-
-
+};
 
 export const getAllProperties = async (req, res) => {
   //Auth middleware
@@ -202,29 +210,37 @@ export const getPropertyById = async (req, res) => {
   } catch (error) {}
 };
 
-export const renewalPlan = async (req,res) => {
+export const renewalPlan = async (req, res) => {
   try {
-    const sellerId = req.user._id
-    const planId = req.params.id
-    const seller = await Seller.findById(sellerId)
-    if(!seller) {
+    const sellerId = req.user._id;
+    const planId = req.params.id;
+    if (!sellerId || !planId) {
+      return res.status(400).json({ message: "Seller and Plan are required." });
+    }
+
+    const seller = await Seller.findById(sellerId);
+    if (!seller) {
       return res.status(404).json({ message: "Seller not found." });
     }
 
-    const plan = await Plan.findById(planId)
-    if(!plan) {
+    const plan = await Plan.findById(planId);
+    if (!plan) {
       return res.status(404).json({ message: "Invalid plan selected." });
     }
 
-    const newPlanExpiryIn = new Date(Date.now() + plan.duration * 24 * 60 * 60 * 1000)
-    seller.planExpiryDate = newPlanExpiryIn
-    await seller.save({ validateBeforeSave: false })
-    res.status(200).json({ message: "Plan Renewed Successfully", seller })
+    const newPlanStartingIn = new Date(Date.now());
+
+    const newPlanExpiryIn = new Date(
+      Date.now() + plan.duration * 24 * 60 * 60 * 1000
+    );
+
+    seller.plan = planId;
+    seller.planExpiryDate = newPlanExpiryIn;
+    seller.planStartingDate = newPlanStartingIn;
+    await seller.save({ validateBeforeSave: false });
+    res.status(200).json({ message: "Plan Renewed Successfully", seller });
   } catch (error) {
-    
+    console.error("Error in renewalPlan:", error);
+    res.status(500).json({ message: "Internal Server Error" });
   }
-}
-
-
-
-
+};
