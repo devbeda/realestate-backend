@@ -2,7 +2,9 @@ import dotenv from "dotenv"
 import express from "express"
 import cors from "cors"
 import connectDB from "./src/config/db.js";
-import cookieParser from "cookie-parser"
+import cookieParser from "cookie-parser";
+
+import bodyParser from "body-parser";
 
 import adminRoute from "./src/routes/admin.routes.js"
 import userRoute from "./src/routes/user.routers.js"
@@ -30,7 +32,12 @@ app.use(
     credentials: true,
   })
 );
+app.use(bodyParser.json());
+
+
 app.use(cookieParser());
+
+
 
 // Routes
 app.use("/api/admin", adminRoute);
