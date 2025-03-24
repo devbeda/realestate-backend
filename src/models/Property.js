@@ -52,7 +52,7 @@ const propertySchema = new mongoose.Schema(
   { timestamps: true, toJSON: { virtuals: true }, toObject: { virtuals: true } }
 );
 
-propertySchema.virtual("averageRating").get(async function () {
+propertySchema.methods.getAverageRating = async function () {
   const Review = mongoose.model("Review");
 
   const reviews = await Review.find({ propertyId: this._id });
@@ -60,8 +60,10 @@ propertySchema.virtual("averageRating").get(async function () {
 
   
   const totalStars = reviews.reduce((acc, review) => acc + review.stars, 0);
-  return totalStars / reviews.length;
-});
+  const avgRating =  totalStars / reviews.length;
+
+  return parseFloat(avgRating.toFixed(1))
+}
 export const Property = mongoose.model("Property", propertySchema);
 // videos,category, property Area(squre feet),
 // property review, views

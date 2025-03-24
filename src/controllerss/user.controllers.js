@@ -128,7 +128,8 @@ export const getPropertyByIdForUser = async (req, res) => {
     const viewRecord = await Views.findOne({propertyId})
     if(viewRecord) {
       if(viewRecord.viewersId.includes(userId)) {
-        return res.status(200).json({property})
+        const avgRating = await property.getAverageRating();
+        return res.status(200).json({property:{...property.toObject(), averageRating: avgRating}})
       }
 
       viewRecord.viewersId.push(userId)
@@ -167,21 +168,22 @@ export const createReview = async (req, res) => {
     }
 
     // Check if any review exists for this property
-    const reviewExistsForProperty = await Review.findOne({ properId: propertyId });
+    const reviewExistsForProperty = await Review.findOne({ propertyId: propertyId });
 
     if (reviewExistsForProperty) {
       // If property has reviews, check if the user already reviewed it
-      const existingReview = await Review.findOne({ properId: propertyId, userId });
+      const existingReview = await Review.findOne({ propertyId: propertyId, userId });
 
       if (existingReview) {
         return res.status(400).json({ message: "You have already reviewed this property." });
       }
     }
 
+
     // Create a new review
     const newReview = new Review({
       userId,
-      properId: propertyId,
+      propertyId,
       stars,
     });
 
@@ -216,7 +218,23 @@ export const deleteReview = async (req, res) => {
 }
 
 export const getApprovedProperties = async(req,res) => {
+  try {
+    const properties = await Property.find({ status: "approved" });
+    if (!properties) {
+      return res.status(404).json({ message: "No approved properties found." });
+    }
 
+    const propertiesWithRating = await Promise.all(
+      properties.map(async (property) => {
+        const avgRating =await property.getAverageRating();
+        return { ...property.toObject(), averageRating: avgRating}
+      })
+    )
+    res.status(200).json({ message: "Approved properties fetched successfully", properties:propertiesWithRating });
+  } catch (error) {
+    console.error("Error fetching approved properties:", error);
+    res.status(500).json({ message: "Error fetching approved properties" });
+  }
 }
 
 ///----------------------------->
