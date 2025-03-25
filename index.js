@@ -43,7 +43,7 @@ app.use(cookieParser());
 app.use("/api/admin", adminRoute);
 app.use("/api/user", userRoute);
 app.use("/api/plan", planRoutes)
-app.use("/api/seller", sellerRoutes); // ✅ Now it will work
+app.use("/api/seller", sellerRoutes); 
 
 const PORT = process.env.PORT || 5001;
 
